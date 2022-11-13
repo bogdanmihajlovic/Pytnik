@@ -5,7 +5,7 @@ import pygame
 import os
 import config
 
-
+from structure import Node
 class BaseSprite(pygame.sprite.Sprite):
     images = dict()
 
@@ -114,3 +114,39 @@ class ExampleAgent(Agent):
         random.shuffle(path)
         return [0] + path + [0]
 
+class Jocke(Agent):
+    def __init__(self, x, y, file_name):
+        super().__init__(x, y, file_name)
+
+    def get_agent_path(self, coin_distance):
+        root = Node(None, [0])
+        root.toVisit = [i for i in range(1, len(coin_distance))]
+        queue = [root]
+
+        minCost = math.inf
+        minPath = []
+
+        while len(queue):
+            node = queue.pop(0)
+
+            for coin in node.toVisit:
+                child = Node(node, node.path + [coin])
+                child.toVisit = [i for i in node.toVisit if i != coin]
+                i = child.path[-1]
+                j = child.path[-2]
+                # TODO obradi gresku
+                child.cost = node.cost + coin_distance[i][j]
+                #node.children.append(child)
+
+                queue.append(child)
+
+            if len(node.toVisit) == 0:
+                node.path.append(0)
+                i = node.path[-1]
+                j = node.path[-2]
+                node.cost += coin_distance[i][j]
+                if(node.cost <= minCost):
+                    minCost = node.cost
+                    minPath = node.path
+
+        return minPath
