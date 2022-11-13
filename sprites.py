@@ -123,6 +123,39 @@ class Jocke(Agent):
         root.toVisit = [i for i in range(1, len(coin_distance))]
         queue = [root]
 
+        """
+        maps = {}
+          coins = [i for i in range(len(coin_distance))]
+
+          for coin in range(1, len(coin_distance)):
+              print(coin)
+              minPath = []
+              minCost = math.inf
+              roo = Node(None, [coin])
+              q = [roo]
+              while len(q):
+                  node = q.pop(0)
+                  if node.path[-1] == 0:
+                      if node.cost < minCost:
+                          minCost = node.cost
+                          minPath = node.path
+                      print(len(q))
+                      continue
+
+                  for nextCoin in coins:
+                      if nextCoin in node.path:
+                          continue
+
+                      child = Node(node, node.path + [nextCoin])
+                      i = child.path[-1]
+                      j = child.path[-2]
+                      child.cost = node.cost + coin_distance[i][j]
+                      node.children.append(child)
+                      q.append(child)
+                  print(len(q))
+              maps[coin] = [minPath, minCost]
+          """
+
         minCost = math.inf
         minPath = []
 
@@ -150,3 +183,26 @@ class Jocke(Agent):
                     minPath = node.path
 
         return minPath
+
+
+class Aki(Agent):
+    def __init__(self, x, y, file_name):
+        super().__init__(x, y, file_name)
+
+    def get_agent_path(self, coin_distance):
+        toVisit = [i for i in range(1, len(coin_distance))]
+        path = [0]
+        while len(toVisit):
+            currCoin = path[-1]
+            nextCoin = -1
+            minCost = math.inf
+            for i in range(len(coin_distance[currCoin])):
+                if minCost > coin_distance[currCoin][i] and i in toVisit:
+                    minCost = coin_distance[currCoin][i]
+                    nextCoin = i
+
+            path.append(nextCoin)
+            toVisit.remove(nextCoin)
+        # TODO kad se vraca isto ovo
+        path.append(0)
+        return path
