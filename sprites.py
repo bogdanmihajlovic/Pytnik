@@ -1,5 +1,6 @@
 import math
 import random
+import bisect
 
 import pygame
 import os
@@ -122,40 +123,6 @@ class Jocke(Agent):
         root = Node(None, [0])
         root.toVisit = [i for i in range(1, len(coin_distance))]
         queue = [root]
-
-        """
-        maps = {}
-          coins = [i for i in range(len(coin_distance))]
-
-          for coin in range(1, len(coin_distance)):
-              print(coin)
-              minPath = []
-              minCost = math.inf
-              roo = Node(None, [coin])
-              q = [roo]
-              while len(q):
-                  node = q.pop(0)
-                  if node.path[-1] == 0:
-                      if node.cost < minCost:
-                          minCost = node.cost
-                          minPath = node.path
-                      print(len(q))
-                      continue
-
-                  for nextCoin in coins:
-                      if nextCoin in node.path:
-                          continue
-
-                      child = Node(node, node.path + [nextCoin])
-                      i = child.path[-1]
-                      j = child.path[-2]
-                      child.cost = node.cost + coin_distance[i][j]
-                      node.children.append(child)
-                      q.append(child)
-                  print(len(q))
-              maps[coin] = [minPath, minCost]
-          """
-
         minCost = math.inf
         minPath = []
 
@@ -165,20 +132,13 @@ class Jocke(Agent):
             for coin in node.toVisit:
                 child = Node(node, node.path + [coin])
                 child.toVisit = [i for i in node.toVisit if i != coin]
-                i = child.path[-1]
-                j = child.path[-2]
-                # TODO obradi gresku
-                child.cost = node.cost + coin_distance[i][j]
-                #node.children.append(child)
-
+                child.cost = node.cost + coin_distance[child.path[-1]][child.path[-2]]
                 queue.append(child)
 
             if len(node.toVisit) == 0:
                 node.path.append(0)
-                i = node.path[-1]
-                j = node.path[-2]
-                node.cost += coin_distance[i][j]
-                if(node.cost <= minCost):
+                node.cost += coin_distance[node.path[-1]][node.path[-2]]
+                if(node.cost < minCost):
                     minCost = node.cost
                     minPath = node.path
 
@@ -200,9 +160,49 @@ class Aki(Agent):
                 if minCost > coin_distance[currCoin][i] and i in toVisit:
                     minCost = coin_distance[currCoin][i]
                     nextCoin = i
-
             path.append(nextCoin)
             toVisit.remove(nextCoin)
-        # TODO kad se vraca isto ovo
+        path.append(0)
+        return path
+
+class Uki(Agent):
+    def __init__(self, x, y, file_name):
+        super().__init__(x, y, file_name)
+
+    def get_agent_path(self, coin_distance):
+        root = Node(None, [0])
+        root.toVisit = [i for i in range(1, len(coin_distance))]
+        
+        queue = [root]
+        path = []
+        while len(queue):
+            node = queue.pop(0)
+
+            if len(node.toVisit) == 0:
+                path = node.path
+                break
+
+            for coin in node.toVisit:
+                child = Node(node, node.path + [coin])
+                child.toVisit = [i for i in node.toVisit if i != coin]
+                child.cost = node.cost + coin_distance[child.path[-1]][child.path[-2]]
+                index = len(queue)
+                # insert in queue
+                for i in range(len(queue)):
+                    curr = queue[i]
+                    if curr.cost == child.cost:
+                        index = i
+                        while index < len(queue) and queue[index].cost == child.cost and queue[index].path[-1] < curr.path[-1]:
+                            index += 1
+                    elif curr.cost > child.cost:
+                        index = i
+                        break
+
+                queue.insert(index, child)
+
+
+
+
+
         path.append(0)
         return path
