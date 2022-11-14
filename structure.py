@@ -5,8 +5,8 @@ class Node:
     def __init__(self, parent, path):
         self.path = path
         self.cost = 0
+        self.price = 0
         self.parent = parent
-        self.children = []
         self.toVisit = []
         self.lastCoin = 0
         self.len = 1
@@ -16,8 +16,8 @@ def findMST(graph):
     num = len(graph)
     mst = [[0 for i in range(num)] for j in range(num)]
     nodes = [False for i in range(num)]
-    numEdge = 0
-    while numEdge < num - 1:
+
+    for iter in range(num):
         minCost = math.inf
         x = 0
         y = 0
@@ -34,7 +34,7 @@ def findMST(graph):
 
         mst[x][y] = mst[y][x] = minCost
         nodes[y] = True
-        numEdge += 1
+
     return mst
 
 

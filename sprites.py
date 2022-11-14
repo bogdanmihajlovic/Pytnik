@@ -5,8 +5,9 @@ import bisect
 import pygame
 import os
 import config
+import operator
 
-from structure import Node
+from structure import Node, findMST, costMST, makeGraph
 class BaseSprite(pygame.sprite.Sprite):
     images = dict()
 
@@ -186,23 +187,46 @@ class Uki(Agent):
                 child = Node(node, node.path + [coin])
                 child.toVisit = [i for i in node.toVisit if i != coin]
                 child.cost = node.cost + coin_distance[child.path[-1]][child.path[-2]]
-                index = len(queue)
-                # insert in queue
-                for i in range(len(queue)):
-                    curr = queue[i]
-                    if curr.cost == child.cost:
-                        index = i
-                        while index < len(queue) and queue[index].cost == child.cost and queue[index].path[-1] < curr.path[-1]:
-                            index += 1
-                    elif curr.cost > child.cost:
-                        index = i
-                        break
+                child.len = node.len + 1
+                child.lastCoin = coin
+                queue.append(child)
+                queue.sort(key=operator.attrgetter('cost', 'len', 'lastCoin'))
 
-                queue.insert(index, child)
+        path.append(0)
+        return path
 
+class Micko(Agent):
+    def __init__(self, x, y, file_name):
+        super().__init__(x, y, file_name)
 
+    def get_agent_path(self, coin_distance):
+        map = {0 : 'A', 1 : 'B', 2 : 'C', 3 : 'D', 4 : 'E' }
+        root = Node(None, [0])
+        root.toVisit = [i for i in range(1, len(coin_distance))]
+        mst = findMST(coin_distance)
 
+        queue = [root]
+        path = []
+        while len(queue):
+            node = queue.pop(0)
 
+            price = costMST(findMST(makeGraph(coin_distance, [i for i in node.path if i != 0])))
+            #for i in node.path:
+            #    print(map[i], end = " ")
+            #print("cena putanje", node.cost, "cena sa heuristikom", node.price)
+            if len(node.toVisit) == 0:
+                path = node.path
+                break
+
+            for coin in node.toVisit:
+                child = Node(node, node.path + [coin])
+                child.toVisit = [i for i in node.toVisit if i != coin]
+                child.cost = node.cost + coin_distance[child.path[-1]][child.path[-2]] # path cost
+                child.price = child.cost + price
+                child.len = node.len + 1
+                child.lastCoin = coin
+                queue.append(child)
+                queue.sort(key=operator.attrgetter('price', 'len', 'lastCoin'))
 
         path.append(0)
         return path
