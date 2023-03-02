@@ -9,7 +9,7 @@ class Node:
         self.parent = parent
         self.toVisit = []
         self.lastCoin = 0
-        self.len = 1
+        self.len = -1
 
 
 def findMST(graph):

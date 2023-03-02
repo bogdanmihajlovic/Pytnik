@@ -137,13 +137,13 @@ class Jocke(Agent):
                 queue.append(child)
 
             if len(node.toVisit) == 0:
-                node.path.append(0)
-                node.cost += coin_distance[node.path[-1]][node.path[-2]]
+                #node.path.append(0)
+                node.cost += coin_distance[node.path[-1]][0]
                 if(node.cost < minCost):
                     minCost = node.cost
                     minPath = node.path
 
-        return minPath
+        return minPath + [0]
 
 
 class Aki(Agent):
@@ -173,12 +173,12 @@ class Uki(Agent):
     def get_agent_path(self, coin_distance):
         root = Node(None, [0])
         root.toVisit = [i for i in range(1, len(coin_distance))]
-        
+        nodes = len(coin_distance)*-1
         queue = [root]
         path = []
         while len(queue):
             node = queue.pop(0)
-
+            #print(node.path, "cost: ", node.cost)
             if len(node.toVisit) == 0:
                 path = node.path
                 break
@@ -187,10 +187,15 @@ class Uki(Agent):
                 child = Node(node, node.path + [coin])
                 child.toVisit = [i for i in node.toVisit if i != coin]
                 child.cost = node.cost + coin_distance[child.path[-1]][child.path[-2]]
-                child.len = node.len + 1
+                child.len = node.len - 1
                 child.lastCoin = coin
                 queue.append(child)
-                queue.sort(key=operator.attrgetter('cost', 'len', 'lastCoin'))
+                if child.len == nodes:
+                    child.cost += coin_distance[child.path[-1]][0]
+
+
+            queue.sort(key=operator.attrgetter('cost', 'len', 'lastCoin'))
+
 
         path.append(0)
         return path
@@ -200,10 +205,10 @@ class Micko(Agent):
         super().__init__(x, y, file_name)
 
     def get_agent_path(self, coin_distance):
-        map = {0 : 'A', 1 : 'B', 2 : 'C', 3 : 'D', 4 : 'E' }
+
         root = Node(None, [0])
         root.toVisit = [i for i in range(1, len(coin_distance))]
-        mst = findMST(coin_distance)
+        #mst = findMST(coin_distance)
 
         queue = [root]
         path = []
@@ -211,9 +216,7 @@ class Micko(Agent):
             node = queue.pop(0)
 
             price = costMST(findMST(makeGraph(coin_distance, [i for i in node.path if i != 0])))
-            #for i in node.path:
-            #    print(map[i], end = " ")
-            #print("cena putanje", node.cost, "cena sa heuristikom", node.price)
+
             if len(node.toVisit) == 0:
                 path = node.path
                 break
@@ -221,12 +224,13 @@ class Micko(Agent):
             for coin in node.toVisit:
                 child = Node(node, node.path + [coin])
                 child.toVisit = [i for i in node.toVisit if i != coin]
-                child.cost = node.cost + coin_distance[child.path[-1]][child.path[-2]] # path cost
+                child.cost = node.cost + coin_distance[child.path[-1]][child.path[-2]]
                 child.price = child.cost + price
-                child.len = node.len + 1
+                child.len = node.len - 1
                 child.lastCoin = coin
                 queue.append(child)
-                queue.sort(key=operator.attrgetter('price', 'len', 'lastCoin'))
+            queue.sort(key=operator.attrgetter('price', 'len', 'lastCoin'))
+
 
         path.append(0)
         return path
